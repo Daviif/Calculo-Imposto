@@ -1,7 +1,7 @@
 #include <stdio.h>
-#include <stdlib.h> // Essencial para system(), malloc(), realloc() e free()
+#include <stdlib.h>
+#include <locale.h> 
 
-// A struct permanece a mesma, pois é a base do nosso sistema
 typedef struct {
     float valorBruto;
     float valorLiquido;
@@ -11,10 +11,10 @@ typedef struct {
     float valorCSLL;
     int dispensaRetencaoTotal; 
     int dispensaRetencaoIR;    
-    int tipoOrgao; // Adicionado para guardar a escolha (1 ou 2) no histórico
+    int tipoOrgao; 
 } ResultadoCalculo;
 
-// A função de cálculo não precisa de alterações
+
 ResultadoCalculo calcularImpostos(float valorParaCalcular, int orgaoPublico) {
     const float ALIQUOTA_IR = 0.015;
     const float ALIQUOTA_IR_OP = 0.012; 
@@ -25,7 +25,7 @@ ResultadoCalculo calcularImpostos(float valorParaCalcular, int orgaoPublico) {
     ResultadoCalculo resultado = {0}; 
     resultado.valorBruto = valorParaCalcular;
     resultado.valorLiquido = valorParaCalcular;
-    resultado.tipoOrgao = orgaoPublico; // Salva a escolha no resultado
+    resultado.tipoOrgao = orgaoPublico; 
 
     if (orgaoPublico == 1) { 
         resultado.valorIR = valorParaCalcular * ALIQUOTA_IR_OP;
@@ -56,7 +56,7 @@ ResultadoCalculo calcularImpostos(float valorParaCalcular, int orgaoPublico) {
     return resultado;
 }
 
-// A função de impressão detalhada também não precisa de alterações
+
 void imprimirDetalhamento(ResultadoCalculo resultado) {
     printf("\n--- Detalhamento do Calculo ---\n");
     printf("Valor Bruto: R$ %.2f\n", resultado.valorBruto);
@@ -86,9 +86,9 @@ void imprimirDetalhamento(ResultadoCalculo resultado) {
     printf("-----------------------------------\n");
 }
 
-// --- NOVA FUNÇÃO: Exibir o histórico de cálculos ---
+
 void exibirHistorico(const ResultadoCalculo *hist, int tamanho) {
-    system("cls"); // Limpa a tela para exibir o histórico
+    system("cls"); 
     printf("--- HISTORICO DE CALCULOS ---\n\n");
     if (tamanho == 0) {
         printf("Nenhum calculo foi realizado ainda.\n");
@@ -103,18 +103,25 @@ void exibirHistorico(const ResultadoCalculo *hist, int tamanho) {
     }
 }
 
-// --- FUNÇÃO MAIN MODIFICADA ---
+
+
 int main() {
+    // --- 2. CONFIGURAR A LOCALIDADE PARA PORTUGUÊS DO BRASIL ---
+    // Esta chamada deve ser uma das primeiras coisas no seu programa.
+    // "Portuguese" é o padrão para sistemas Windows.
+    setlocale(LC_ALL, "Portuguese");
+
     // Variáveis para o controle do menu e do histórico
     int opcao = -1;
-    ResultadoCalculo *historico = NULL; // Ponteiro para o nosso array dinâmico de histórico
-    int historico_tamanho = 0;   // Quantos itens temos no histórico
-    int historico_capacidade = 0; // Qual a capacidade atual do nosso array
+    ResultadoCalculo *historico = NULL; 
+    int historico_tamanho = 0;   
+    int historico_capacidade = 0; 
 
-    // Loop principal do programa
     do {
-        system("cls"); // Limpa a tela (comando do Windows)
+        system("cls");
         printf("========= CALCULADORA DE IMPOSTOS =========\n");
+        printf("     (Valores decimais usam VIRGULA)\n"); // Aviso ao usuário
+        printf("===========================================\n");
         printf("1. Fazer novo calculo\n");
         printf("2. Ver historico de calculos\n");
         printf("0. Sair\n");
@@ -123,12 +130,14 @@ int main() {
         scanf("%d", &opcao);
 
         switch (opcao) {
-            case 1: { // Chaves criam um escopo local para as variáveis
+            case 1: { 
                 float valor = 0;
                 int esc;
 
+                // Mensagem atualizada para guiar o usuário
                 printf("\nDigite o valor a ser calculado: ");
-                scanf("%f", &valor);
+                scanf("%f", &valor); // scanf agora espera uma vírgula!
+
                 printf("E um orgao Publico? (1) para sim, (2) para nao: ");
                 scanf("%d", &esc);
 
@@ -136,18 +145,19 @@ int main() {
                     printf("\nOpcao invalida. Pressione qualquer tecla para continuar...\n");
                 } else {
                     ResultadoCalculo resultadoAtual = calcularImpostos(valor, esc);
-                    imprimirDetalhamento(resultadoAtual);
+                    
+                
+                    imprimirDetalhamento(resultadoAtual); 
 
-                    // Adicionar ao histórico
+                    
                     if (historico_tamanho == historico_capacidade) {
-                        // Se o histórico está cheio (ou é o primeiro item), dobramos sua capacidade
                         historico_capacidade = (historico_capacidade == 0) ? 10 : historico_capacidade * 2;
                         ResultadoCalculo *temp = realloc(historico, historico_capacidade * sizeof(ResultadoCalculo));
                         
                         if (temp == NULL) {
                             printf("Erro critico de alocacao de memoria!\n");
-                            free(historico); // Libera o que puder antes de sair
-                            return 1; // Termina com erro
+                            free(historico);
+                            return 1;
                         }
                         historico = temp;
                     }
@@ -155,10 +165,11 @@ int main() {
                     historico_tamanho++;
                     printf("Calculo salvo no historico.\n");
                 }
-                system("pause"); // Pausa a execução (comando do Windows)
+                system("pause");
                 break;
             }
-            case 2: {
+           
+             case 2: {
                 exibirHistorico(historico, historico_tamanho);
                 system("pause");
                 break;
@@ -174,7 +185,6 @@ int main() {
 
     } while (opcao != 0);
     
-    // Libera a memória alocada para o histórico antes de fechar o programa
     free(historico);
     historico = NULL;
 
